@@ -13,7 +13,27 @@ function love.load()
 
     -- bullets
     bullets = {}
-    bulletTimer = 0
+    bulletTimer = 0 -- cooldown
+
+    -- asteroids
+    asteroids = {
+        {
+            x = 100,
+            y = 100,
+        },
+        {
+            x = arenaWidth - 100,
+            y = 100,
+        },
+        {
+            x = arenaWidth / 2,
+            y = arenaHeight - 100,
+        },
+    }
+
+    for asteroidIndex, asteroid in ipairs(asteroids) do
+        asteroid.angle = love.math.random() * (2 * math.pi)
+    end
 end
 
 function love.update(dt)
@@ -48,11 +68,12 @@ function love.update(dt)
                 x = shipX + math.cos(shipAngle) * shipRadius,
                 y = shipY + math.sin(shipAngle) * shipRadius,
                 angle = shipAngle,
-                timeLeft = 4,
+                timeLeft = 4, -- tempo que as balas desaparecem
             })
         end
     end
 
+    -- move as balas
     for bulletIndex, bullet in ipairs(bullets) do
         local bulletSpeed = 500
         bullet.x = (bullet.x + math.cos(bullet.angle) * bulletSpeed * dt) % arenaWidth
@@ -71,6 +92,13 @@ function love.update(dt)
             bullet.x = (bullet.x + math.cos(bullet.angle) * bulletSpeed * dt) % arenaWidth
             bullet.y = (bullet.y + math.sin(bullet.angle) * bulletSpeed * dt) % arenaHeight
         end
+    end
+
+    -- move os asteroids
+    for asteroidIndex, asteroid in ipairs(asteroids) do
+        local asteroidSpeed = 20
+        asteroid.x = (asteroid.x + math.cos(asteroid.angle) * asteroidSpeed * dt) % arenaWidth
+        asteroid.y = (asteroid.y + math.sin(asteroid.angle) * asteroidSpeed * dt) % arenaHeight
     end
 
 end
@@ -103,16 +131,42 @@ function love.draw()
             
             -- desenha o jogador
             love.graphics.setColor(0, 0, 1)
-            love.graphics.circle('line', shipX, shipY, shipRadius)
+            love.graphics.circle(
+                'line', 
+                shipX, 
+                shipY, 
+                shipRadius
+            )
             
             -- desenha o piloto
             love.graphics.setColor(0, 1, 1)
-            love.graphics.circle('line', shipX + math.cos(shipAngle) * 20, shipY + math.sin(shipAngle) * 20, shipRadius/6)
+            love.graphics.circle(
+                'line', 
+                shipX + math.cos(shipAngle) * 20, 
+                shipY + math.sin(shipAngle) * 20, 
+                shipRadius/6
+            )
         
             -- desenha as balas
             for bulletIndex, bullet in ipairs(bullets) do
                 love.graphics.setColor(0, 1, 0)
-                love.graphics.circle('fill', bullet.x, bullet.y, 5)
+                love.graphics.circle(
+                    'fill', 
+                    bullet.x, 
+                    bullet.y, 
+                    5
+                )
+            end
+
+            -- desenha os asteroids
+            for asteroidsIndex, asteroids in ipairs(asteroids) do
+                love.graphics.setColor(1, 1, 0)
+                love.graphics.circle(
+                    'line', 
+                    asteroids.x, 
+                    asteroids.y, 
+                    80
+                )
             end
         end
     end
