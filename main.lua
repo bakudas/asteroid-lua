@@ -14,6 +14,7 @@ function love.load()
     -- bullets
     bullets = {}
     bulletTimer = 0 -- cooldown
+    bulletRadius = 5
 
     -- asteroids
     asteroids = {
@@ -30,6 +31,7 @@ function love.load()
             y = arenaHeight - 100,
         },
     }
+    asteroidRadius = 80
 
     for asteroidIndex, asteroid in ipairs(asteroids) do
         asteroid.angle = love.math.random() * (2 * math.pi)
@@ -73,6 +75,11 @@ function love.update(dt)
         end
     end
 
+    -- função que detecta se dois circulos estão se colidindo
+    local function areCirclesIntersecting( aX, aY, aRadius, bX, bY, bRadius )
+        return (aX - bX)^2 + (aY - bY)^2 <= (aRadius + bRadius)^2
+    end
+
     -- move as balas
     for bulletIndex, bullet in ipairs(bullets) do
         local bulletSpeed = 500
@@ -92,14 +99,31 @@ function love.update(dt)
             bullet.x = (bullet.x + math.cos(bullet.angle) * bulletSpeed * dt) % arenaWidth
             bullet.y = (bullet.y + math.sin(bullet.angle) * bulletSpeed * dt) % arenaHeight
         end
+
+        for asteroidIndex = #asteroids, 1, -1 do
+            local asteroid = asteroids[asteroidIndex]
+
+            if areCirclesIntersecting(bullet.x, bullet.y, bulletRadius, asteroid.x, asteroid.y, asteroidRadius) then
+                table.remove( bullets,bulletIndex )
+                table.remove( asteroids,asteroidIndex )
+                break
+            end
+        end
     end
 
     -- move os asteroids
+
     for asteroidIndex, asteroid in ipairs(asteroids) do
         local asteroidSpeed = 20
         asteroid.x = (asteroid.x + math.cos(asteroid.angle) * asteroidSpeed * dt) % arenaWidth
         asteroid.y = (asteroid.y + math.sin(asteroid.angle) * asteroidSpeed * dt) % arenaHeight
+    
+        if areCirclesIntersecting(shipX, shipY, shipRadius, asteroid.x, asteroid.y, asteroidRadius) then
+            love.load() 
+            break
+        end
     end
+
 
 end
 
@@ -154,7 +178,7 @@ function love.draw()
                     'fill', 
                     bullet.x, 
                     bullet.y, 
-                    5
+                    bulletRadius
                 )
             end
 
@@ -165,13 +189,13 @@ function love.draw()
                     'line', 
                     asteroids.x, 
                     asteroids.y, 
-                    80
+                    asteroidRadius
                 )
             end
         end
     end
 
-    -- Temporary
+    -- debug
     love.graphics.origin()
     love.graphics.setColor(1, 1, 1)
     love.graphics.print(table.concat({
@@ -182,13 +206,5 @@ function love.draw()
         'shipSpeedY: '..shipSpeedY,
     }, '\n'))
 
-    -- debug
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.print(table.concat({
-        'shipAngle: '..shipAngle,
-        'shipX: '..shipX,
-        'shipY: '..shipY,
-        'shipSpeedX: '..shipSpeedX,
-        'shipSpeedY: '..shipSpeedY,
-    }, '\n'))
+
 end
